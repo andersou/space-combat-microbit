@@ -1,21 +1,37 @@
 import pygame
-import random
+import random, pyganim
 
 from Bala import Bala
 from constants import *
 
-naves = ["images/Ships/spaceShips_001.png","images/Ships/spaceShips_002.png","images/Ships/spaceShips_003.png","images/Ships/spaceShips_004.png","images/Ships/spaceShips_005.png","images/Ships/spaceShips_006.png","images/Ships/spaceShips_007.png","images/Ships/spaceShips_008.png","images/Ships/spaceShips_009.png"]
+naves = ["images/Ships/spaceShips_001.png",]
+tempos = [100,]
+frames_pyg = list(zip(naves,tempos))
+print(frames_pyg)
+
 class Nave(pygame.sprite.Sprite):
     def __init__(self,bala_render):
         super().__init__()
         self.bala_render = bala_render
-        nave = random.choice(naves)
-        self.image = pygame.image.load(nave).convert_alpha()
-        self.original = self.image = pygame.transform.scale(self.image,(LARGURA_NAVE, int(LARGURA_NAVE/self.image.get_width() * self.image.get_height())))
-        self.rect = self.image.get_rect()
+        # nave = random.choice(naves)
+        self.initAnim()
+
+        self.image = self.anim.getCurrentFrame() #pygame.image.load(nave).convert_alpha()
+        self.rect = self.anim.getRect()
+
         self.accel_x, self.accel_y = 0 , 0
+
         self.rect.center = random.randrange(0, LARGURA_TELA),random.randrange(0, ALTURA_TELA)
+
         self.angle = 90
+
+    def initAnim(self):
+        self.anim = pyganim.PygAnimation(frames_pyg)
+        self.anim.scale((LARGURA_NAVE, int(
+            LARGURA_NAVE / self.anim.getCurrentFrame().get_width() * self.anim.getCurrentFrame().get_height())))
+        self.anim.makeTransformsPermanent()
+        self.anim.play()
+
     def move_x(self, qtde):
         self.accel_x = qtde
     def move_y(self,qtde):
@@ -25,9 +41,11 @@ class Nave(pygame.sprite.Sprite):
         if self.angle == graus:
             return
         centro = self.rect.center
-        self.image = pygame.transform.rotate(self.original, graus - 90)
+        self.anim.clearTransforms()
+        self.anim.rotate(90-graus)
+
         self.angle = graus
-        self.rect = self.image.get_rect()
+        self.rect = self.anim.getRect()
         self.rect.center = centro
 
 
@@ -35,9 +53,10 @@ class Nave(pygame.sprite.Sprite):
         if self.accel_x == 0 and self.accel_y == 0:
             return
         self.rect.move_ip(self.accel_x, self.accel_y)
-        self.accel_x = 0
-        self.accel_y = 0
+
     def update(self):
+        self.image = self.anim.getCurrentFrame()  # pygame.image.load(nave).convert_alpha()
+
         teclas = pygame.key.get_pressed()
 
         if teclas[pygame.K_RIGHT] and teclas[pygame.K_UP] :
