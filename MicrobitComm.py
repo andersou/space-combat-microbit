@@ -8,7 +8,6 @@ from constants import PORTA_SERIAL
 
 
 async def _analyze_msg(line,on_message_cb):
-    print(on_message_cb)
     mib = MicrobitProtocol(line)
     if on_message_cb and mib.isValid():
         on_message_cb(mib.getMessage())
@@ -19,10 +18,9 @@ class MicrobitComm:
         #self.serial = Serial(PORTA_SERIAL,self.on_line_received)
         self.event_loop = asyncio.new_event_loop()
         threading.Thread(target=self.event_loop.run_forever).start()
-        print(self.event_loop)
 
     def on_line_received(self,line):
-        asyncio.async(_analyze_msg(line,self.on_message_cb),loop=self.event_loop)
+        asyncio.run_coroutine_threadsafe(_analyze_msg(line,self.on_message_cb),loop=self.event_loop)
 
 
 

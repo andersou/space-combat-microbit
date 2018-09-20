@@ -12,10 +12,10 @@ class MicrobitProtocol:
     _B_PRESS_GROUP = 6
 
     def __init__(self,line):
-        self.isValid = False
+        self.is_valid = False
         match = MicrobitProtocol._REGEX_PROTOCOL.match(line)
         if match:
-            self.isValid = True
+            self.is_valid = True
             self.msg = Message(
                 match.group(MicrobitProtocol._USERNAME_GROUP),
                 acc_x=match.group(MicrobitProtocol._ACC_X_GROUP),
@@ -25,7 +25,7 @@ class MicrobitProtocol:
                 b_press=match.group(MicrobitProtocol._B_PRESS_GROUP)
             )
     def isValid(self):
-        return self.isValid
+        return self.is_valid
 
     def getMessage(self):
         return self.msg
