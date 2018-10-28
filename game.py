@@ -1,20 +1,52 @@
-import sys, pygame, queue
+import sys, pygame
 from constants import *
-pygame.init()
-#size = width, height = 1366, 768
-size = width, height = LARGURA_TELA, ALTURA_TELA
+from microbit_helpers.MicrobitComm import MicrobitComm
 
-screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+pygame.init()
+
+#
+#   Configurações iniciais pygame
+#
+#size = width, height = 1366, 768
+#size = width, height = LARGURA_TELA, ALTURA_TELA
+screen = pygame.display.set_mode((600,600), pygame.DOUBLEBUF )#, pygame.FULLSCREEN)
+screen_rect = screen.get_rect()
 clock = pygame.time.Clock()
 bg = pygame.image.load("images/space.png")
 
-from Nave import Nave
+#
+#   Import de sprites
+#
+from sprites.Nave import Nave
 
-balas_group = pygame.sprite.RenderPlain()
-naves = [Nave(balas_group.add),Nave(balas_group.add),Nave(balas_group.add),Nave(balas_group.add),Nave(balas_group.add),Nave(balas_group.add)]
+#
+#   Grupos de renderizacao
+#
+balas_render = pygame.sprite.RenderPlain()
+naves_render = pygame.sprite.RenderPlain()
+names_render = pygame.sprite.RenderPlain()
 
-allsprites = pygame.sprite.RenderPlain(naves)
+#
+#  Teste
+#
 
+#naves_render.add(Nave(balas_render,names_render),Nave(balas_render,names_render),Nave(balas_render,names_render),Nave(balas_render,names_render),Nave(balas_render,names_render))
+user_naves = {}
+def new_message(msg):
+    nave = user_naves.get(msg.user)
+    if not nave:
+        nave = Nave(balas_render,names_render, msg.user)
+        naves_render.add(nave)
+        user_naves[msg.user] = nave
+    else:
+        nave.update_from_msg(msg)
+
+mb_comm = MicrobitComm(new_message)
+
+def remove_nave(nave):
+    naves_render.remove(nave)
+    names_render.remove(nave.username)
+    user_naves.pop(nave.username.username)
 
 while 1:
     clock.tick(60)
@@ -23,18 +55,24 @@ while 1:
             sys.exit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_g:
-                for sp in allsprites.sprites():
+                for sp in naves_render.sprites():
                     sp.tiro()
-    allsprites.update()
-    balas_group.update()
+    naves_render.update()
+    balas_render.update()
+    names_render.update()
     screen.blit(bg,(0,0))
-    allsprites.draw(screen)
-    balas_group.draw(screen)
+    naves_render.draw(screen)
+    balas_render.draw(screen)
+    names_render.draw(screen)
     pygame.display.flip()
 
-    colide = pygame.sprite.groupcollide(allsprites,balas_group,False,False)
+    colide = pygame.sprite.groupcollide(naves_render, balas_render, False, False)
     for nave,balas in colide.items():
         for bala in balas:
             if bala.nave != nave:
-                allsprites.remove(nave)
+                remove_nave(nave)
+
+    for bala in balas_render:
+       if not bala.rect.colliderect(screen_rect):
+           balas_render.remove(bala)
 

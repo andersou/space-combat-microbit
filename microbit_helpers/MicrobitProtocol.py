@@ -1,5 +1,5 @@
 import re
-from Message import Message
+from microbit_helpers.Message import Message
 
 class MicrobitProtocol:
     _REGEX_PROTOCOL = re.compile(
