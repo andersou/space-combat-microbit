@@ -1,15 +1,18 @@
+# -*- coding: utf-8 -*-
+
 import sys, pygame
 from constants import *
+from microbit_helpers.Message import Message
 from microbit_helpers.MicrobitComm import MicrobitComm
-
+from queue import Queue
 pygame.init()
-
+import time
 #
 #   Configurações iniciais pygame
 #
 #size = width, height = 1366, 768
 #size = width, height = LARGURA_TELA, ALTURA_TELA
-screen = pygame.display.set_mode((600,600), pygame.DOUBLEBUF )#, pygame.FULLSCREEN)
+screen = pygame.display.set_mode((0,0), pygame.DOUBLEBUF )#, pygame.FULLSCREEN)
 screen_rect = screen.get_rect()
 clock = pygame.time.Clock()
 bg = pygame.image.load("images/space.png")
@@ -32,14 +35,12 @@ names_render = pygame.sprite.RenderPlain()
 
 #naves_render.add(Nave(balas_render,names_render),Nave(balas_render,names_render),Nave(balas_render,names_render),Nave(balas_render,names_render),Nave(balas_render,names_render))
 user_naves = {}
+fila_msgs = Queue()
+
 def new_message(msg):
-    nave = user_naves.get(msg.user)
-    if not nave:
-        nave = Nave(balas_render,names_render, msg.user)
-        naves_render.add(nave)
-        user_naves[msg.user] = nave
-    else:
-        nave.update_from_msg(msg)
+    #print(msg.b_press)
+    fila_msgs.put(msg)
+
 
 mb_comm = MicrobitComm(new_message)
 
@@ -49,7 +50,7 @@ def remove_nave(nave):
     user_naves.pop(nave.username.username)
 
 while 1:
-    clock.tick(60)
+    clock.tick(120)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
@@ -75,4 +76,14 @@ while 1:
     for bala in balas_render:
        if not bala.rect.colliderect(screen_rect):
            balas_render.remove(bala)
+
+    while not fila_msgs.empty():
+        msg = fila_msgs.get()
+        nave = user_naves.get(msg.user)
+        if not nave:
+            nave = Nave(balas_render, names_render, msg.user)
+            naves_render.add(nave)
+            user_naves[msg.user] = nave
+        else:
+            nave.update_from_msg(msg)
 

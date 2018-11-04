@@ -2,37 +2,59 @@
 import threading
 import asyncio
 import serial, sys
+import time
+import array
 from queue import Queue
 from microbit_helpers.MicrobitProtocol import MicrobitProtocol
 
-
-async def _analyze_msg(line,on_message_cb):
-    mib = MicrobitProtocol(line)
-    if on_message_cb and mib.isValid():
-        on_message_cb(mib.getMessage())
-    else:
-        print("Mensagem invalida: {}", mib.getMessage())
+fila_msg = Queue()
 
 def serial_thread(process_func):
     PORTA = sys.argv[1]
     if not PORTA:
         return
+    #threading.Thread(target=process_msg_thread, args=[process_func]).start()
 
-    with serial.Serial(PORTA,115200) as porta:
+    with serial.Serial(PORTA,115200,timeout=None) as porta:
+        arr = bytearray(251)
         while True:
-            line = porta.readline().decode('UTF8').strip()
-            process_func(line)
+            if porta.in_waiting:
+                i =0
+                while True:
+                    b = porta.read()
+                    if b == None or b == b'\x00' or b == b'\x01' or b == b'':
+                        continue
+                    elif b == b'\n' :
+                        break
+                    else:
+                        arr[i] = b[0]
+                        i += 1
+                #print(arr[:i])
+                msg = arr[:i].decode('ascii').strip()
+                print(msg)
+                process_func(msg)
+
+
+#def process_msg_thread(process_func):
+  #  while True:
+        #if not fila_msg.empty():
+        #    line = fila_msg.get()
+       #     msg =
+       # time.sleep(0.001)
+
 
 class MicrobitComm:
     def __init__(self, on_message_cb):
         self.on_message_cb = on_message_cb
-        self.event_loop = asyncio.new_event_loop()
-        threading.Thread(target=self.event_loop.run_forever).start()
         threading.Thread(target=serial_thread, args=[self.process]).start()
 
 
     def process(self,line):
-        asyncio.run_coroutine_threadsafe(_analyze_msg(line,self.on_message_cb),loop=self.event_loop)
+        mib = MicrobitProtocol(line)
+        if self.on_message_cb and mib.isValid():
+            self.on_message_cb(mib.getMessage())
+        else:
+            print("Mensagem invalida: {}", mib.getMessage())
 
 
 

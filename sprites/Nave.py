@@ -130,7 +130,7 @@ class Nave(pygame.sprite.Sprite):
         self.angulo(msg.orientation)
         self.accel_x = msg.acc_x
         self.accel_y = msg.acc_y
-        if(msg.a_press):
+        if(msg.a_press == True):
             self.tiro()
 
 

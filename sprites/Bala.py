@@ -10,13 +10,10 @@ class Bala(pygame.sprite.Sprite):
     def __init__(self,angle,x,y, nave):
         super().__init__()
         self.accel_x, self.accel_y = cos(angle*pi/180)*VELOC_BALA, sin(angle*pi/180)*VELOC_BALA
-        print(self.accel_x, self.accel_y)
-        print(self.accel_x,self.accel_y,angle)
         self.angulo(angle,x,y)
         self.nave = nave
 
     def angulo(self, graus,x,y):
-        print(graus)
         self.image = pygame.transform.rotate(BALA.copy(), graus - 90)
         self.angle = graus
         self.rect = self.image.get_rect()
