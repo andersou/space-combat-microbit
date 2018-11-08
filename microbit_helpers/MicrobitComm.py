@@ -18,20 +18,20 @@ def serial_thread(process_func):
     with serial.Serial(PORTA,115200,timeout=None) as porta:
         arr = bytearray(251)
         while True:
-            if porta.in_waiting:
-                i =0
-                while True:
-                    b = porta.read()
-                    if b == None or b == b'\x00' or b == b'\x01' or b == b'':
-                        continue
-                    elif b == b'\n' :
-                        break
-                    else:
-                        arr[i] = b[0]
-                        i += 1
-                #print(arr[:i])
-                msg = arr[:i].decode('ascii').strip()
-                print(msg)
+            # i =0
+            # while True:
+            #     b = porta.read()
+            #     if b == None or b == b'\x00' or b == b'\x01' or b == b'':
+            #         continue
+            #     elif b == b'\n' :
+            #         break
+            #     else:
+            #         arr[i] = b[0]
+            #         i += 1
+            #print(arr[:i])
+            line = porta.readline()
+            if line[0] == 1 and line[1] == 0 and line[2] == 1: 
+                msg = line[3:].decode('ascii').strip()
                 process_func(msg)
 
 
@@ -54,7 +54,7 @@ class MicrobitComm:
         if self.on_message_cb and mib.isValid():
             self.on_message_cb(mib.getMessage())
         else:
-            print("Mensagem invalida: {}", mib.getMessage())
+            print("Mensagem invalida:", mib.getMessage())
 
 
 

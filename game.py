@@ -50,7 +50,7 @@ def remove_nave(nave):
     user_naves.pop(nave.username.username)
 
 while 1:
-    clock.tick(120)
+    clock.tick(60)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
@@ -76,6 +76,11 @@ while 1:
     for bala in balas_render:
        if not bala.rect.colliderect(screen_rect):
            balas_render.remove(bala)
+
+    now = time.time()
+    for nave in naves_render:
+        if now - nave.last > 3:
+            remove_nave(nave)
 
     while not fila_msgs.empty():
         msg = fila_msgs.get()

@@ -1,14 +1,27 @@
 import pygame
-import random, pyganim
+import random, pyganim, time
 
 from microbit_helpers import Message
 from sprites.Bala import Bala
 from constants import *
 from sprites.Username import Username
 
-naves = ["images/Ships/spaceShips_001.png",]
-tempos = [100,]
-frames_pyg = list(zip(naves,tempos))
+
+frames_pyg = [ 
+    [["images/Ships/spaceShips_001.png",100]], 
+    [["images/Ships/spaceShips_002.png",100]], 
+    [["images/Ships/spaceShips_003.png",100]], 
+    [["images/Ships/spaceShips_004.png",100]], 
+    [["images/Ships/spaceShips_005.png",100]], 
+    [["images/Ships/spaceShips_006.png",100]], 
+    [["images/Ships/spaceShips_007.png",100]], 
+    [["images/Ships/spaceShips_008.png",100]], 
+    [["images/Ships/spaceShips_009.png",100]], 
+    ]
+
+
+
+
 print(frames_pyg)
 
 
@@ -39,10 +52,12 @@ class Nave(pygame.sprite.Sprite):
 
         # Renders para os filhos
         self.bala_render = bala_render
+        self.last = time.time()
 
 
     def initAnim(self):
-        self.anim = pyganim.PygAnimation(frames_pyg)
+        self.anim = pyganim.PygAnimation(random.choice(frames_pyg))
+        
         self.anim.scale((LARGURA_NAVE, int(
             LARGURA_NAVE / self.anim.getCurrentFrame().get_width() * self.anim.getCurrentFrame().get_height())))
         self.anim.makeTransformsPermanent()
@@ -65,6 +80,19 @@ class Nave(pygame.sprite.Sprite):
     def do_move(self):
         if self.accel_x == 0 and self.accel_y == 0:
             return
+        # nao deixa sair da tela
+        #nao deixa sair pela esquerda
+        if self.rect.left <= 0 and self.accel_x  < 0:
+            self.accel_x = 0    
+        #nao deixa sair pela direita
+        if self.rect.right >= LARGURA_TELA and self.accel_x  > 0:
+            self.accel_x = 0
+        #nao deixa sair por cima   
+        if self.rect.top <= 0 and self.accel_y  < 0:
+            self.accel_y = 0
+        #nao deixa sair por baixo    
+        if self.rect.bottom > ALTURA_TELA and self.accel_y  > 0:
+            self.accel_y = 0    
 
         self.rect.move_ip(self.accel_x, self.accel_y)
     def update_username_pos(self):
@@ -132,5 +160,6 @@ class Nave(pygame.sprite.Sprite):
         self.accel_y = msg.acc_y
         if(msg.a_press == True):
             self.tiro()
+        self.last = time.time()
 
 

@@ -24,6 +24,8 @@ class MicrobitProtocol:
                 a_press=match.group(MicrobitProtocol._A_PRESS_GROUP),
                 b_press=match.group(MicrobitProtocol._B_PRESS_GROUP)
             )
+        else:
+            self.msg = line
     def isValid(self):
         return self.is_valid
 
